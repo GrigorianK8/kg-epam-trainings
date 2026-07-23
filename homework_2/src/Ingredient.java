@@ -9,7 +9,7 @@ public enum Ingredient {
     PEPPERONI(0.6),
     OLIVES(0.5);
 
-    private double price;
+    private final double price;
 
     Ingredient(double price) {
         this.price = price;
