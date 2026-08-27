@@ -1,3 +1,6 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +21,10 @@ public class Order {
         this.orderTime = LocalTime.now();
     }
 
-    public void addPizza(String name, Type type, int quantity) {
+    public Pizza addPizza(String name, Type type, int quantity) {
         if (pizzas.size() >= 10) {
             System.out.println("Cannot add more pizzas. Order is full.");
-            return;
+            return null;
         }
 
         int index = pizzas.size() + 1;
@@ -32,50 +35,55 @@ public class Order {
 
         Pizza pizza = new Pizza(name, type, quantity);
         pizzas.add(pizza);
+        return pizza;
     }
 
     public void printCheck() {
 
-        double total = 0;
+        try (PrintWriter writer = new PrintWriter(new FileWriter("receipt.txt"))) {
+            double total = 0;
 
-        System.out.println("********************************");
-        System.out.println("Order: " + orderNumber);
-        System.out.println("Client: " + customerNumber);
+            writer.println("********************************");
+            writer.println("Order: " + orderNumber);
+            writer.println("Client: " + customerNumber);
 
-        for (Pizza pizza : pizzas) {
+            for (Pizza pizza : pizzas) {
 
-            System.out.println("--------------------------------");
-            System.out.println("Name: " + pizza.getName());
+                writer.println("--------------------------------");
+                writer.println("Name: " + pizza.getName());
 
-            double pizzaPrice = 0;
+                double pizzaPrice = 0;
 
-            // base price
-            if (pizza.getType() == Type.REGULAR) {
-                pizzaPrice += 1.0;
-            } else {
-                pizzaPrice += 1.5;
+                // base price
+                if (pizza.getType() == Type.REGULAR) {
+                    pizzaPrice += 1.0;
+                } else {
+                    pizzaPrice += 1.5;
+                }
+
+                writer.println("Pizza Base: " + pizzaPrice);
+
+                // ingredients
+                for (Ingredient ing : pizza.getIngredients()) {
+                    writer.println(ing + " " + ing.getPrice());
+                    pizzaPrice += ing.getPrice();
+                }
+
+                pizzaPrice *= pizza.getQuantity();
+
+                writer.println("--------------------------------");
+                writer.println("Amount: " + pizzaPrice);
+                writer.println("Quantity: " + pizza.getQuantity());
+
+                total += pizzaPrice;
             }
 
-            System.out.println("Pizza Base: " + pizzaPrice);
-
-            // ingredients
-            for (Ingredient ing : pizza.getIngredients()) {
-                System.out.println(ing + " " + ing.getPrice());
-                pizzaPrice += ing.getPrice();
-            }
-
-            pizzaPrice *= pizza.getQuantity();
-
-            System.out.println("--------------------------------");
-            System.out.println("Amount: " + pizzaPrice);
-            System.out.println("Quantity: " + pizza.getQuantity());
-
-            total += pizzaPrice;
+            writer.println("--------------------------------");
+            writer.println("Total amount: " + total);
+            writer.println("********************************");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        System.out.println("--------------------------------");
-        System.out.println("Total amount: " + total);
-        System.out.println("********************************");
     }
 
     private boolean isValidName(String name) {
